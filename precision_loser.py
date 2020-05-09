@@ -38,3 +38,12 @@ def inverse_mod(a, m):
         raise ValueError("({}, {}) != 1, can't invert".format(a,m))
     else:
         return ((u % m) + m) % m
+
+def split_powers_of_two(n):
+    """ Returns (a,b) where a*b = n and a is odd and b is a power of 2"""
+    even_part = 1
+    odd_part = n
+    while odd_part % 2 == 0:
+        odd_part /= 2
+        even_part *= 2
+    return (odd_part, even_part)
