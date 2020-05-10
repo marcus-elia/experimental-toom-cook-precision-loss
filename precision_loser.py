@@ -299,8 +299,41 @@ def multiply(f, g, n, m, formulas="efficient"):
 #            Precision Loss
 #
 # ========================================
-f = [1,4,3,4,5,0,7,4,6,4]
-g = [5,2,5,5,6,1,1,4,3,6]
-print(schoolbook_mod(f, g, 2**6))
-print(multiply(f, g, 5, 6))
+def strongest_congruence(a, b, max_pow):
+    """ This returns the largest positive int m such that
+        a = b mod 2^m, up to max_pow"""
+    cur_pow = 1
+    prev_pow = 0
+    while (a % 2**cur_pow) == (b % 2**cur_pow) and prev_pow < max_pow:
+        cur_pow += 1
+        prev_pow += 1
+    return prev_pow
+
+def strongest_congruence_list(f, g, max_pow):
+    return min([strongest_congruence(f[i], g[i], max_pow) for i in range(len(f))])
+
+def bits_lost(f, g, m):
+    return m - strongest_congruence_list(f, g, m)
+
+def precision_lost_single_trial(f, g, n, m=32, formulas="efficient"):
+    """ Returns the number of bits of precision lost by multiplying f
+        and g according to Toom-n mod 2^m with the specified
+        interpolation formulas."""
+    true_answer = schoolbook_mod(f, g, 2**m)
+    toom_answer = multiply(f, g, n, m, formulas)
+    return bits_lost(true_answer, toom_answer, m)
+
+def precision_lost_many_trials(n, m=32, formulas="efficient", num_trials=100):
+    max_loss = 0;
+    for _ in range(num_trials):
+        degree = int(np.random.randint(2*n, 10*n))
+        f = [int(x) for x in np.random.randint(0, 2**m, degree)]
+        g = [int(x) for x in np.random.randint(0, 2**m, degree)]
+        loss = precision_lost_single_trial(f, g, n, m, formulas)
+        if loss > max_loss:
+            max_loss = loss
+    print("Toom-{} with the {} interpolation formulas loses {} bits of precision.".format(n, formulas, max_loss))
+    return max_loss
+
+precision_lost_many_trials(5, m=16)
 
